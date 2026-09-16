@@ -1,0 +1,80 @@
+// p5.js: 음성 제어로 원의 색상 및 좌우 이동을 제어하고 색상(0∼3) 및 각도값(0∼180) 송신
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let port = new p5.WebSerial();				// 시리얼 통신을 위한 객체 생성
+let result = '', value1 = 3, value2 = 0, x = 200, dx = 0;
+
+function setup() {
+  createCanvas(400, 300);
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  port.on('data', serialEvent);		// 데이터 수신 시 ‘data’ 이벤트 발생→콜백함수 호출
+  rec.onEnd = recEnd; 		// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, false);			// true: 연속음성인식, false: 최종 인식 결과만 출력
+}
+
+function draw() {
+  background(0, 10);			// 페이딩 효과
+  noStroke();				// 외곽선 제거
+  fill(255, 255, 0);
+  textSize(20);
+  text('RGB LED: 빨간색, 녹색, 파란색', 20, 30);
+  text('서보모터: 왼쪽, 오른쪽, 정지', 20, 60);
+  
+  if (result.indexOf('빨간색') !== -1) {
+    value1 = 0;				// 송신값: Red
+    fill(255, 0, 0);
+  } else if (result.indexOf('녹색') !== -1) {
+    value1 = 1;				// 송신값: Green
+    fill(0, 255, 0);
+  } else if (result.indexOf('파란색') !== -1) {
+    value1 = 2;				// 송신값: Blue
+    fill(0, 0, 255);   
+  } else {
+    value1 = 3;				// 송신값: RGB LED OFF
+    fill(255);
+  }
+  ellipse(x, height/2, 100, 100);		// 원 그리기
+
+  if (result.indexOf('왼쪽') !== -1) {
+    dx = -1;					// 왼쪽 방향으로 이동
+  } else if (result.indexOf('오른쪽') !== -1) {
+    dx = 1;					// 오른쪽 방향으로 이동
+  } else if (result.indexOf('정지') !== -1) {
+    dx = 0;					// 정지
+  }
+  x += dx;					// 원의 x축 방향 이동	
+  x = constrain(x, 0, width);			// x축 값 범위 제한: 0∼width
+  value2 = int(map(x, 0, width, 0, 180));	// value2값을 각도(→정수:0∼180)로 변환
+}
+
+function serialEvent() {		// 콜백함수: 시리얼버퍼에 수신값이 있으면 자동 호출
+  let signal = port.read(); 			// 수신 (통신제어신호: 'B')
+  port.write(value1 + ' ' + value2 + '\n');	// 복수 값을 하나의 문자열로 송신
+}
+
+function recResult() {		// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  result = rec.resultString;	// 음성인식 결과를 result에 저장
+  console.log(result);
+}
+
+function recEnd() {		// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start();			// 음성인식 재시작
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

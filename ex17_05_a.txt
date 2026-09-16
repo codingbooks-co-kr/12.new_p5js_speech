@@ -1,0 +1,29 @@
+// 아두이노: 초음파센서값 송신
+
+const int TRIG = A4, ECHO = A5;
+int distance;
+
+void setup() {
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.write('A');			// 시리얼 통신 시작신호 전송
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() {
+  digitalWrite(TRIG, HIGH);		// 10μsec의 HIGH 신호를 초음파센서에 인가
+  delayMicroseconds(10);		// 10μsec 동안 지연
+  digitalWrite(TRIG, LOW);
+
+  distance = pulseIn(ECHO, HIGH) * 0.017;	// 물체와의 거리(cm단위) 측정
+  delay(30);					// 다음 계측까지 최소 10msec 이상 대기
+}
+
+void serialEvent() {				// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int signal = Serial.read();			// 수신: 통신제어신호('B') 수신
+  distance = constrain(distance, 5, 100);	// 5cm∼100cm로 거리값 제한
+  Serial.write(distance);				// 송신: 거리값 송신
+}

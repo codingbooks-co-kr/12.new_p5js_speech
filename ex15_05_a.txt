@@ -1,0 +1,46 @@
+// 아두이노: RGB LED 색상값 및 서보모터 각도값 수신
+
+#include <Servo.h>		// Servo 클래스가 선언된 헤더파일 가져오기
+#define RedLED 11
+#define GreenLED 5
+#define BlueLED 3
+#define SERVO A0
+Servo servo;			// Servo 클래스를 이용한 servo 객체의 선언 및 생성
+
+void setup() {
+  pinMode(RedLED, OUTPUT);
+  pinMode(GreenLED, OUTPUT);
+  pinMode(BlueLED, OUTPUT);
+  pinMode(SERVO, OUTPUT);
+  servo.attach(SERVO);			// SERVO핀(→A0)을 servo 객체에 연결
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.write('A');			// 시작신호 전송
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() { }
+
+void serialEvent() {      		// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int value1 = Serial.parseInt();		// 수신 문자열 중 첫 번째 숫자문자 추출, 정수 저장
+  int value2 = Serial.parseInt();		// 수신 문자열 중 두 번째 숫자문자 추출, 정수 저장
+  if (value1 == 0) {
+    setColor(255, 0, 0);		// Red
+  } else if (value1 == 1) {
+    setColor(0, 255, 0);		// Green
+  } else if (value1 == 2) {
+    setColor(0, 0, 255);		// Blue
+  } else if (value1 == 3) {
+    setColor(0, 0, 0);			// RGB LED OFF
+  }
+  servo.write(value2);			// 서보모터 각도 제어
+  Serial.write('B');        		// 송신 (통신제어신호: 'B')
+}
+
+// setColor(빨강, 녹색, 파랑): 색상을 결정하는 함수
+void setColor(int Red, int Green, int Blue) {
+  analogWrite(RedLED, Red);
+  analogWrite(GreenLED, Green);
+  analogWrite(BlueLED, Blue);
+}

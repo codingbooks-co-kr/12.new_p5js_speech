@@ -1,0 +1,32 @@
+// 마우스를 누를 때마다 음성합성으로 한국어 문장 출력3
+
+let speech = new p5.Speech();	// 음성합성 객체 생성
+let words1 = '마우스를 누르세요', words2 = '안녕하세요';
+
+function setup() {
+  createCanvas(400, 200);
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+  speech.setVoice('Google 한국의');	// 한국어 합성음성 설정
+  speech.started(speechStart);		// 음성합성이 시작되면 콜백함수 speechStart() 호출
+  speech.ended(speechEnd);		// 음성합성이 끝나면 콜백함수 speechEnd() 호출
+
+  background(0);
+  fill(255, 255, 0);
+  textAlign(CENTER, CENTER);
+  textSize(30);
+  text(words1, width/2, height/2);
+}
+
+function speechStart() {		// 콜백함수: 음성합성이 시작되면 자동 호출
+  background(random(255), random(255), random(255));
+  text(words2, width/2, height/2);
+}
+
+function speechEnd() {			// 콜백함수: 음성합성이 끝나면 자동 호출
+  background(0);
+  text(words1, width/2, height/2);
+}
+
+function mousePressed() {		// 마우스를 누를 때
+  speech.speak(words2);		// 합성음성 출력
+}

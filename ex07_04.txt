@@ -1,0 +1,57 @@
+// 음성인식으로 문장 입력 후 텍스트 영역을 마우스로 누르면 합성음성으로 출력
+
+let speech = new p5.Speech();			// 음성합성 객체 생성
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let textArea, words = '', speaking = false;
+
+function setup() {
+  noCanvas();
+  createElement('h2', '음성인식으로 문장 입력 후 음성 출력');
+
+  textArea = createElement('textarea');	// 텍스트 입력창 생성
+  textArea.style('font-size', '20px');	// 텍스트 입력창의 폰트 크기 설정
+  textArea.attribute('rows', '10');	// 텍스트 입력창의 행 수: 10행
+  textArea.attribute('cols', '40');		// 텍스트 입력창의 열 수: 40열
+  textArea.mousePressed(talk); 	// 텍스트 영역을 마우스로 눌러 talk() 호출  
+
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+  speech.started(speechStart);		// 음성합성이 시작되면 콜백함수 speechStart() 호출
+  speech.ended(speechEnd);		// 음성합성이 끝나면 콜백함수 speechEnd() 호출
+
+  rec.onEnd = recEnd;			// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, false); 			// 연속음성인식 설정, 최종 인식 결과만 출력
+}
+
+function draw() {
+  textArea.value(words);
+}
+
+function talk() {				// 콜백함수: talk() 
+  words = textArea.value();
+  speech.speak(words); 		// 합성음성 출력
+}
+
+function recResult() {			// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  let result = rec.resultString; 		// 음성인식 결과를 result에 저장
+  words += result;			// 인식 문장을 누적
+  words += '. ';			// 각 인식 문장의 끝에 마침표(.) 추가
+}
+
+function speechStart() {			// 음성합성 시작될 때 자동 호출
+  speaking = true;
+  textArea.style('background-color', '#ffff00');	// 텍스트 영역 배경 컬러(노란색) 설정
+  rec.stop();					// 음성인식 중지 → recEnd() 호출
+}
+
+function speechEnd() {				// 음성합성 종료 시 자동 호출
+  speaking = false;
+  textArea.style('background-color', '#ffffff');	// 텍스트 영역 배경 컬러(흰색) 설정
+  rec.start();					// 음성인식 재시작
+}
+
+function recEnd() {			// 콜백함수: 시간초과로 음성인식 종료 시 자동 호출
+  if (!speaking) {			// 음성합성이 종료된 경우에만 참
+    console.log('음성인식 재시작');
+    rec.start();				// 음성인식 재시작
+  }
+}

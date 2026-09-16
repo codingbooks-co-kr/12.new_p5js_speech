@@ -1,0 +1,62 @@
+// p5.js: 가변저항값 수신하여 원을 좌우 이동하고 원의 위치를 음성으로 출력2
+
+let speech = new p5.Speech();	// 음성합성 객체 생성
+let port = new p5.WebSerial();		// 시리얼 통신을 위한 객체 생성
+let values = 0, newValues = 0, num = 0, preNum = 0;
+
+function setup() {
+  createCanvas(400, 200);
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  port.on('data', serialEvent);		// 데이터 수신 시 ‘data’ 이벤트 발생→콜백함수 호출
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+}
+
+function draw() {
+  background(0);
+  stroke(255, 255, 0);
+  line(width/2, 0, width/2, height);	// 중앙선 그리기(→가변저항값 경계치)
+
+  noStroke();
+  fill(255, 255, 0);
+  textSize(20);
+  text('가변저항: ' + nf(values, 4), 20, 40);
+  ellipse(newValues, height/2, 50, 50);
+}
+
+function mousePressed() {		// 마우스를 누르면 현재의 가변저항값 읽기
+  speech.speak(`가변저항값은 ${values}입니다`);
+}
+
+function serialEvent() {			// 콜백함수: 시리얼버퍼에 수신값이 있으면 자동 호출
+  let str = port.readLine();		// 개행까지의 수신 문자열 읽기
+  if (!str) return;			// 입력 문자열(→str)이 없으면 함수 빠져나가기
+  let s = trim(str);			// 입력 문자열(→str)의 시작과 끝에 붙은 공백 삭제
+  values = int(s);			// 입력 문자열(→str)을 정수로 변환
+  newValues = map(values, 0, 1023, 0, width-1); 
+  num = int(newValues / (width/2));	// 중앙선을 기점으로 num = 0 또는 1
+  if (num != preNum) {		// num값이 바뀔 때만 합성음성 한 번 출력
+    if (num === 0) {
+      speech.speak('왼쪽');		// 합성음성 출력
+    } else if (num === 1) {
+      speech.speak('오른쪽');		// 합성음성 출력
+    }
+  }
+  preNum = num;
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

@@ -1,0 +1,70 @@
+// p5.js: 음성 제어로 진행바를 제어하고 서보모터의 각도값(0∼180) 송신
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let port = new p5.WebSerial();				// 시리얼 통신을 위한 객체 생성
+let labels = '0도', angle = 0, w = 360;
+
+function setup() {
+  createCanvas(400, 200);
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  port.on('data', serialEvent);		// 데이터 수신 시 ‘data’ 이벤트 발생→콜백함수 호출
+  rec.onEnd = recEnd; 		// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, false);			// true: 연속음성인식, false: 최종 인식 결과만 출력
+}
+
+function draw() {
+  background(0);
+  noStroke();
+  fill(255, 255, 0);
+  textSize(20);
+  text('인식단어: 0도에서 180도까지', 20, 30);
+  text('서보모터 각도: ' + labels, 20, 60);
+  
+  fill(255);
+  rect(20, 100, w, 50);			// 각도 범위(0∼180)를 사각형 넓이(w)로 표현
+  
+  fill(255, 0, 0);
+  let progress = map(angle, 0, 180, 0, w);
+  rect(20, 100, progress, 50);		// 사각형 진행바 표현
+}
+
+function serialEvent() {		// 콜백함수: 시리얼버퍼에 수신값이 있으면 자동 호출
+  let signal = port.read();	// 수신: 시작신호('A'), 제어신호('B')를 수신 후 signal에 저장
+  port.write(angle);        	// 송신: 각도값(0∼180) 전송
+}
+
+function recResult() {			// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  let result = rec.resultString;		// 음성인식 결과를 result에 저장
+  angle = int(result);			// 인식 숫자 문자열을 정수로 변환
+
+  // 0보다 작거나 180보다 큰 경우 또는 숫자가 아닌 경우(→문자열)
+  if (angle < 0 || angle > 180 || isNaN(angle)) {
+    angle = 0;
+    labels = '범위 초과!';
+  } else {				// 0∼180 사이의 정수인 경우
+    labels = angle + '도';
+  }
+  console.log(result, angle);
+}
+
+function recEnd() {				// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start();					// 음성인식 재시작
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

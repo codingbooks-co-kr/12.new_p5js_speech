@@ -1,0 +1,60 @@
+// p5.js: 푸시버튼값을 수신 후 아이콘명을 음성 출력
+
+let speech = new p5.Speech(); 	// 음성합성 객체 생성
+let port = new p5.WebSerial();		// 시리얼 통신을 위한 객체 생성
+let words = ['자전거', '버스', '비행기', '보트', '택시', '지하철'];
+let traffic = ['eb29', 'e530', 'e539', 'e532', 'e559', 'e56f'];	// Code Point
+let index = 0, values = 0, preValues = 0, x = 0, y = 0, tx = 0.0, ty = 0.5;
+
+function setup() {
+  createCanvas(500, 400);
+  textFont('Material Symbols Outlined'); 		// 폰트 설정
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  port.on('data', serialEvent);		// 데이터 수신 시 ‘data’ 이벤트 발생→콜백함수 호출
+  speech.setLang('ko-KR'); 		// 음성합성 언어 설정(한국어)
+  speech.speak(words[index]); 		// 합성음성 출력
+}
+
+function draw() {
+  background(0);
+  fill(255, 255, 0);
+  textSize(20);
+  text('아이콘: 자전거, 버스, 비행기, 보트, 택시, 지하철', 20, 30);
+  text('[버튼을 누르면 아이콘 랜덤 출현]', 20, 60);
+
+  textSize(100);
+  let icon = char(unhex(traffic[index])); 	// 16진수→10진수→문자형으로 형변환
+  text(icon, x, y); 				// 아이콘 문자 표시
+
+  x = noise(tx) * width;			// x값 범위: 0∼width
+  y = noise(ty) * height;			// y값 범위: 0∼height
+  tx += 0.01;
+  ty += 0.01;
+  if (values === 0 && preValues === 1) {	// 푸시버튼을 누르면 음성을 한 번만 출력
+    index = int(random(traffic.length)); 	// 아이콘 배열 인덱스 랜덤 선택
+    speech.speak(words[index]); 		// 합성음성 출력
+  }
+  preValues = values;
+}
+
+function serialEvent() {			// 콜백함수: 시리얼버퍼에 수신값이 있으면 자동 호출
+  values = port.read(); 			// 수신: 수신값(→푸시버튼값) 읽기
+  port.write('B'); 			// 송신: 통신제어신호('B') 전송
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

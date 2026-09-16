@@ -1,0 +1,65 @@
+// p5.js: 음성 제어(→오프, 일, 이, 삼, 사)로 정수(→0,1,2,3,4) 송신
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let port = new p5.WebSerial();				// 시리얼 통신을 위한 객체 생성
+let result = '';
+
+function setup() {
+  createCanvas(500, 200);
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  rec.onEnd = recEnd; 		// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, true);			// true: 연속음성인식, true: 중간 인식 결과도 출력
+}
+
+function draw() {
+  background(0);
+  fill(255, 255, 0);
+  textSize(20);
+  text('인식단어: 일(1), 이(2), 삼(3), 사(4), 오프(소등)', 20, 40);
+  
+  if (result.indexOf('일') !== -1 || result.indexOf('1') !== -1) { 
+    text('일(1)', 230, 120);
+    port.write(1);			// 1 송신
+  } else if (result.indexOf('이') !== -1 || result.indexOf('2') !== -1) {
+    text('이(2)', 230, 120);
+    port.write(2);			// 2 송신
+  } else if (result.indexOf('삼') !== -1 || result.indexOf('3') !== -1) {
+    text('삼(3)', 230, 120);
+    port.write(3);			// 3 송신
+  } else if (result.indexOf('사') !== -1 || result.indexOf('4') !== -1) {
+    text('사(4)', 230, 120);
+    port.write(4);			// 4 송신
+  } else if (result.indexOf('오프') !== -1 || result.indexOf('소등') !== -1) { 
+    text('오프(소등)', 230, 120);
+    port.write(0);			// 0 송신
+  } else {
+    text('인식단어를 말해 주세요', 150, 120);
+  }
+}
+
+function recResult() {		// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  result = rec.resultString;	// 음성인식 결과를 result에 저장
+  console.log(result);
+}
+
+function recEnd() {		// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start();			// 음성인식 재시작
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

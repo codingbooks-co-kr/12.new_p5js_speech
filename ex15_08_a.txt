@@ -1,0 +1,25 @@
+// 아두이노: 푸시버튼값 2개 송신
+
+#define BUTTON1 2
+#define BUTTON2 4
+
+void setup() {
+  pinMode(BUTTON1, INPUT);
+  pinMode(BUTTON2, INPUT);
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.println('A');			// 시리얼 통신 시작신호 전송 ([심화15.1] 참조)
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() { }
+
+void serialEvent() {			// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int signal = Serial.read();		// 수신: 통신제어신호('B') 수신
+  int value1 = digitalRead(BUTTON1);	// 푸시버튼값1 읽기
+  int value2 = digitalRead(BUTTON2);	// 푸시버튼값2 읽기
+  Serial.print(value1);
+  Serial.print(",");
+  Serial.println(value2);			// 송신: “value1,value2\r\n”의 문자열로 묶어 송신
+}

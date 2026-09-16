@@ -1,0 +1,26 @@
+// 아두이노: 초음파센서 거리값 송신
+
+#define TRIG A4
+#define ECHO A5
+#define MIN 5        		// 최소 거리: 5cm
+#define MAX 50         	// 최대 거리: 50cm
+
+void setup() {
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // 10μsec의 HIGH 신호를 초음파센서에 인가
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  // 물체와의 거리(cm단위) 측정
+  int distance = pulseIn(ECHO, HIGH) * 0.017;
+
+  int value = constrain(distance, MIN, MAX);	// 측정 거리의 최소 및 최대치 제한
+  Serial.write(value);				// 5∼50 범위의 거리값을 전송
+  delay(30);          				// 다음 계측까지 최소 10msec 이상 지연
+}

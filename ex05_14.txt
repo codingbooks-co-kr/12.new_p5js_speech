@@ -1,0 +1,29 @@
+// 마우스의 위치가 원의 안쪽인지 바깥쪽인지에 따라 원의 색상이 바뀌고 음성 출력
+
+let speech = new p5.Speech(); 	// 음성합성 객체 생성
+let d, r = 100, change = false, inOut = false;
+
+function setup() {
+  createCanvas(300, 300);
+  speech.setLang('ko-KR'); 		// 음성합성 언어 설정(한국어)
+}
+
+function draw() {
+  background(0);
+  d = dist(width/2, height/2, mouseX, mouseY);
+  if (d < r) {				// 마우스가 원 안으로 들어오는 경우
+    fill(255, 0, 0);
+    inOut = true;
+    if (change !== inOut) {		// 마우스의 위치가 바뀌는 순간 한 번만 음성 출력
+      speech.speak('안쪽'); 		// 합성음성 출력
+    }
+  } else {				// 마우스가 원 밖에 있는 경우
+    fill(255, 255, 255);
+    inOut = false;
+    if (change !== inOut) {		// 마우스의 위치가 바뀌는 순간 한 번만 음성 출력
+      speech.speak('바깥쪽');		// 합성음성 출력
+    }
+  }
+  ellipse(width/2, height/2, r*2, r*2);
+  change = inOut;
+}

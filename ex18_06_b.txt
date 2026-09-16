@@ -1,0 +1,140 @@
+// p5.js: 음성인식 키워드로 택시 이동, 택시를 따라가는 자전거, “정지”를 인식하면 두 이동체 사이의 거리를 합성음성으로 출력, 푸시버튼을 누르면 자전거만 제자리에서 랜덤하게 떨림, 게임 종료 시 합성음성 출력, 음성인식 키워드(→“시작”)로 게임 재시작
+
+let speech = new p5.Speech(); 			// 음성합성 객체 생성
+let rec = new p5.SpeechRec("ko-KR", recResult); 	// 음성인식 객체 생성 및 초기화
+let port = new p5.WebSerial();				// 시리얼 통신을 위한 객체 생성
+let result = "", x1 = 250, y1 = 250, x2 = 500, y2 = 500;
+let c, d, velocity, space = 50, direction = 0, state = false, stop = false;
+
+function setup() {
+  createCanvas(500, 500);
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  port.on('data', serialEvent);		// 데이터 수신 시 ‘data’ 이벤트 발생→콜백함수 호출
+  speech.setLang("ko-KR"); 		// 음성합성 언어 설정(한국어)
+  rec.onEnd = recEnd; 		// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, true); 			// true: 연속음성인식, true: 중간 인식 결과도 출력
+
+  c = color(255, 255, 255);
+  textAlign(CENTER, CENTER);
+  textFont('Material Symbols Outlined');
+  textSize(space);
+}
+
+function draw() {
+  background(0); 
+  fill(c);
+  let texi = char(unhex('e559'));	// 택시 아이콘
+  text(texi, x1, y1);			// 택시 아이콘 표시
+  fill(255, 255, 0);
+  let bike = char(unhex('e52f'));	// 자전거 아이콘
+  text(bike, x2, y2);			// 자전거 아이콘 표시
+
+  moving();				// 택시 이동
+  gameOver();				// 게임 종료
+
+  if (result.indexOf("정지") !== -1) { 	// “정지” 키워드를 인식한 경우
+    velocity = 0;				// 택시와 자전거 정지
+    direction = 0;
+    c = color(255, 255, 255);		// 택시 색상
+    stroke(255, 0, 0);			// 선 색상
+    line(x1, y1, x2, y2);		// 택시와 자전거 사이의 거리를 선으로 표시
+    if (state) {				// 합성음성 한 번 출력
+      speech.speak(`거리값은 ${int(d)}입니다`);
+    }
+    state = false;
+  } else {				// 택시와 자전거가 이동하는 경우
+    state = true;
+    chase();
+  }
+}
+
+function moving() {
+  velocity = 2;				// 택시가 이동하는 속도
+  if (result.indexOf("왼쪽") !== -1) {
+    x1 -= velocity;
+    direction = 1;
+    c = color(255, 0, 0);
+  } else if (result.indexOf("오른쪽") !== -1) {
+    x1 += velocity;
+    direction = 2;
+    c = color(0, 255, 0);
+  } else if (result.indexOf("위쪽") !== -1) {
+    y1 -= velocity;
+    direction = 3;
+    c = color(0, 0, 255);
+  } else if (result.indexOf("아래쪽") !== -1) {
+    y1 += velocity;
+    direction = 4;
+    c = color(255, 0, 255);
+  }
+  x1 = constrain(x1, 0, width);		// 택시는 캔버스 내에서만 이동 제한
+  y1 = constrain(y1, 0, height);	// 택시는 캔버스 내에서만 이동 제한
+}
+
+function chase() {
+  let dx = x1 - x2;			// 택시와 자전거 간의 x축 거리 차이
+  let dy = y1 - y2;			// 택시와 자전거 간의 y축 거리 차이
+  if (stop) {				// (아두이노) 푸시버튼을 누른 경우
+    dx = int(random(3)) - 1;		// dx = -1,0,1 중 랜덤값
+    dy = int(random(3)) - 1;		// dy = -1,0,1 중 랜덤값
+  }
+  if (dx > 0) x2++;			// 자전거가 오른쪽으로 택시를 따라감
+  if (dx < 0) x2--;			// 자전거가 왼쪽으로 택시를 따라감
+  if (dy > 0) y2++;			// 자전거가 아래쪽으로 택시를 따라감
+  if (dy < 0) y2--;			// 자전거가 위쪽으로 택시를 따라감
+}
+
+function gameOver() {
+  d = dist(x1, y1, x2, y2);		// 자전거와 택시 사이의 거리
+  if (d < 5) {				// 자전거와 택시가 만나는 경우
+    text("게임 종료", width/2, height/2);
+    speech.speak('게임 종료'); 		// 합성음성 출력
+    noLoop();				// draw() 반복 처리 정지
+  }
+}
+
+function serialEvent() {			// 콜백함수: 시리얼 버퍼에 값이 수신되면 자동 호출
+  let values = port.read();		// 수신: 푸시버튼값(0,1) 수신
+  if (values === 0) {
+    stop = true;
+  } else {
+    stop = false;
+  }
+  port.write(direction); 			// 송신: 택시의 이동 방향값(0∼4) 전송
+}
+
+function recResult() { 			// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  result = rec.resultString; 		// 음성인식 결과를 result에 저장
+  console.log(result);
+  if (result.indexOf("시작") !== -1) {	// “시작” 키워드를 인식한 경우
+    direction = 0;
+    c = color(255, 255, 255);
+    x1 = 250;
+    y1 = 250;
+    x2 = 500;
+    y2 = 500;
+    loop();				// draw() 반복 처리
+  }
+}
+
+function recEnd() {			// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log("[음성인식 재시작]");
+  rec.start(); 				// 음성인식 재시작
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

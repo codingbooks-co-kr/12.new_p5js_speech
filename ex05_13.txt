@@ -1,0 +1,27 @@
+// 원이 상하로 한 번 진동할 때마다 음성으로 횟수 출력
+
+let speech = new p5.Speech();	// 음성합성 객체 생성
+let degree = 0, count = 0;
+
+function setup() {
+  createCanvas(300, 300);
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+  speech.setVoice('Google 한국의');	// 한국어 합성음성 설정
+}
+
+function draw() {
+  background(0);
+  let theta = radians(degree);		// 각도(degree)를 라디안값(theta)으로 변환
+  let y = height/2 + height/2 * sin(theta);
+  stroke(255);
+  line(width/2, 0, width/2, y);
+  ellipse(width/2, y, 30, 30);
+  let num = degree % 360;		// 한 번 진동(=360도)할 때마다 num은 0이 됨
+  if (degree !== 0 && num === 0) {	// degree가 초깃값(0)이 아니고 num은 0일 때
+    fill(random(255), random(255), random(255));
+    count++;
+    console.log(degree, num, count);
+    speech.speak(`횟수 ${count}`);	// 합성음성 출력
+  }
+  degree += 3;
+}

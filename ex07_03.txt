@@ -1,0 +1,33 @@
+// 텍스트 영역을 마우스로 누르면 합성음성으로 출력
+
+let speech = new p5.Speech(); 		// 음성합성 객체 생성 및 초기화
+let textArea, words = '';
+
+function setup() {
+  noCanvas();
+  let poem = '엄마야 누나야, 강변 살자. 뜰에는 반짝이는 금모래 빛, 뒷문 밖에는 갈잎의 노래, 엄마야 누나야, 강변 살자.'
+  
+  createElement('h2', '음성합성으로 문장 읽기');	// h2의 크기로 제목 출력
+  textArea = createElement('textarea', poem);	// 텍스트 영역에 문자열(poem) 삽입
+  textArea.style('font-size', '20px');	// 텍스트 입력창의 폰트 크기 설정
+  textArea.attribute('rows', '10');	// 텍스트 입력창의 행 수: 10행
+  textArea.attribute('cols', '40');		// 텍스트 입력창의 열 수: 40열
+  textArea.mousePressed(talk); 	// 버튼을 누르면 콜백함수 talk() 호출
+  
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+  speech.started(speechStart);		// 음성합성이 시작되면 콜백함수 speechStart() 호출
+  speech.ended(speechEnd);		// 음성합성이 끝나면 콜백함수 speechEnd() 호출
+}
+
+function talk() {				// 콜백함수: talk() 
+  words = textArea.value();		// 텍스트 영역의 문자열을 words에 저장
+  speech.speak(words); 		// words의 문자열을 합성음성으로 출력
+}
+
+function speechStart() {		// 콜백함수: 음성합성이 시작되면 자동 호출
+  textArea.style('background-color', '#ffff00');	// 텍스트 영역 배경 컬러(노란색) 설정
+}
+
+function speechEnd() {			// 콜백함수: 음성합성이 끝나면 자동 호출
+  textArea.style('background-color', '#ffffff');	// 텍스트 영역 배경 컬러(흰색) 설정
+}

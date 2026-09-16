@@ -1,0 +1,10 @@
+function setup() {
+  console.log(isNaN('p5.js'));	// 문자열이므로 true
+  console.log(isNaN(3));		// 숫자이므로 false
+  console.log(isNaN(3.14));	// 숫자이므로 false
+  console.log(isNaN('3'));	// '3' → 3이므로 false
+  console.log(isNaN('3.14'));	// '3.14' → 3.14이므로 false
+  console.log(isNaN(' '));	// 공백문자 → 0이므로 false
+  console.log(isNaN(null));	// null → 0이므로 false
+  console.log(isNaN(undefined));  // undefined → NaN이므로 true
+}

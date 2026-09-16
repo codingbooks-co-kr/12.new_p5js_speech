@@ -1,0 +1,11 @@
+// 텍스트 입력창 생성
+
+function setup() {
+  noCanvas();
+  createElement('h2', '텍스트를 입력해 봅시다');	// h2의 크기로 제목 출력
+
+  let textArea = createElement('textarea', '엄마야 누나야');	// 텍스트 입력창 생성
+  textArea.style('font-size', '20px');		// 폰트 크기 설정
+  textArea.attribute('rows', '4');			// 텍스트 입력창의 행 수: 4행
+  textArea.attribute('cols', '25');			// 텍스트 입력창의 열 수: 25열
+}

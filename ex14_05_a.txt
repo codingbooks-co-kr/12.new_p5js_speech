@@ -1,0 +1,17 @@
+// 아두이노: 조도센서값을 문자열로 송신
+
+#define LIGHT A3
+#define MIN 400				// 최소 밝기값(수정 요!)
+#define MAX 800  				// 최대 밝기값(수정 요!)
+
+void setup() {
+  pinMode(LIGHT, INPUT);
+  Serial.begin(9600);
+}
+
+void loop( ) {
+  int value = analogRead(LIGHT);		// 조도센서값 읽기
+  value = constrain(value, MIN, MAX);		// 조도센서값을 MIN∼MAX 범위로 제한
+  Serial.println(value);				// 조도센서값을 문자열로 송신
+  delay(30);					// 전송 속도 지연
+}

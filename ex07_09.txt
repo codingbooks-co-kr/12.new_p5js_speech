@@ -1,0 +1,30 @@
+// 연속음성인식 (캔버스 사용)
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let myFont, y = 60;
+
+function preload() {
+  // 웹폰트 URL을 복사, 붙여넣기
+  myFont = loadFont('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2202-2@1.0/LeeSeoyun.woff');
+}
+
+function setup() {
+  createCanvas(400, 400);
+  background(200);
+  fill(0);
+  textFont(myFont, 20);		// 폰트 및 폰트 크기 설정
+  text('[음성인식 시작]', 10, 30);
+  
+  rec.onEnd = recEnd;			// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, false);			// 연속음성인식 설정, 최종 인식 결과만 출력
+}
+
+function recResult() {			// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  text(rec.resultString, 10, y);		// 음성인식 결과
+  y += 30;				// 출력의 결과문장 간의 y축 여백 증가율
+}
+
+function recEnd() {			// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start();				// 음성인식 재시작
+}

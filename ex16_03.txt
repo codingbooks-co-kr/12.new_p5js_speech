@@ -1,0 +1,58 @@
+// 음성 제어(→자전거, 버스, 비행기, 보트, 택시, 지하철)로 생성되어 랜덤 이동하는 아이콘
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let words = ['자전거', '버스', '비행기', '보트', '택시', '지하철'];
+let traffic = ['eb29', 'e530', 'e539', 'e532', 'e559', 'e56f'];	// Code Point
+let index = -1, x = 0, y = 0, tx = 0.0, ty = 0.5;
+
+function setup() {
+  createCanvas(500, 400);
+  textFont('Material Symbols Outlined');		// 아이콘 문자 표시를 위한 폰트 설정
+  rec.onEnd = recEnd;			// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, false);			// true: 연속음성인식, false: 최종 인식 결과만 출력
+}
+
+function draw() {
+  background(0);
+  fill(255, 255, 0);
+  textSize(20);
+  text('인식단어: 자전거, 버스, 비행기, 보트, 택시, 지하철', 20, 30);
+
+  if (index >=0 && index < traffic.length) {	// 바르게 인식한 경우
+    textSize(100);
+    let icon = char(unhex(traffic[index]));	// 16진수→10진수→문자형으로 형변환
+    text(icon, x, y);				// 아이콘 문자 표시
+    x = noise(tx) * width;			// x값 범위: 0∼width
+    y = noise(ty) * height;			// y값 범위: 0∼height
+    tx += 0.01;
+    ty += 0.01;
+  } else {					// 오인식의 경우
+    textSize(40);
+    text('키워드를 말해주세요', 70, height/2);
+  }
+}
+
+function recResult() {				// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  let result = rec.resultString; 			// 음성인식 결과를 result에 저장
+  console.log(result);
+  if (result.indexOf('자전거') !== -1) {		// 인식 문장 중 '자전거'가 포함된 경우
+    index = 0;
+  } else if (result.indexOf('버스') !== -1) {	// 인식 문장 중 '버스'가 포함된 경우
+    index = 1;
+  } else if (result.indexOf('비행기') !== -1) {  	// 인식 문장 중 '비행기'가 포함된 경우
+    index = 2;
+  } else if (result.indexOf('보트') !== -1) {  	// 인식 문장 중 '보트'가 포함된 경우
+    index = 3;
+  } else if (result.indexOf('택시') !== -1) {  	// 인식 문장 중 '택시'가 포함된 경우
+    index = 4;
+  } else if (result.indexOf('지하철') !== -1) {  	// 인식 문장 중 '지하철'이 포함된 경우
+    index = 5;
+  } else {					// 오인식의 경우
+    index = -1;
+  }
+}
+
+function recEnd() {				// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start();					// 음성인식 재시작
+}

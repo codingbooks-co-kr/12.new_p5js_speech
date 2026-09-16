@@ -1,0 +1,54 @@
+// 음성으로 숫자 맞추기 게임1
+
+let speech = new p5.Speech(); 			// 음성합성 객체 생성 및 초기화
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let answer, speaking = false;
+
+function setup() {
+  noCanvas();
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+  speech.started(speechStart);		// 음성합성이 시작되면 콜백함수 speechStart() 호출
+  speech.ended(speechEnd);		// 음성합성이 끝나면 콜백함수 speechEnd() 호출
+  rec.onEnd = recEnd;			// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, false);			// true: 연속음성인식, false: 최종 인식 결과만 출력
+
+  createP('[숫자(10-20)를 맞추어 봅시다]');
+  createP('[음성인식 시작]');
+  answer = int(random(10, 21));	// 10∼20 사이의 랜덤 정수 설정
+  console.log('정답: ' + answer);
+}
+
+function recResult() {			// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  createDiv(rec.resultString);		// 음성인식 결과를 웹 페이지에 표시
+  let yourAnswer = int(rec.resultString);	// 인식 숫자 문자열을 정수로 변환
+  if (yourAnswer < 10 || yourAnswer > 20 || isNaN(yourAnswer)) {
+    speech.speak('10에서 20 사이의 정수를 말해주세요');
+  } else if (yourAnswer < answer) {
+    speech.speak('작은 숫자');			// 합성음성 출력
+  } else if (yourAnswer > answer) {
+    speech.speak('큰 숫자');			// 합성음성 출력
+  } else if (yourAnswer === answer) {
+    speech.speak('정답입니다!');			// 합성음성 출력
+    answer = int(random(10, 21));		// 10∼20 사이의 랜덤 정수 설정
+    console.log('정답: ' + answer);		// 새로운 숫자 맞추기 게임 시작
+  }
+}
+
+function speechStart() {		// 음성합성 시작될 때 자동 호출
+  console.log('음성인식 중지(음성합성 시작)');
+  speaking = true;
+  rec.stop();				// 음성인식 중지 → recEnd() 호출
+}
+
+function speechEnd() {			// 음성합성 종료 시 자동 호출
+  console.log('음성인식 시작(음성합성 종료)');
+  speaking = false;
+  rec.start();				// 음성인식 재시작
+}
+
+function recEnd() {			// 콜백함수: 시간초과로 음성인식 종료 시 자동 호출
+  if (!speaking) {			// 음성합성이 종료된 경우에만 참
+    console.log('음성인식 재시작');
+    rec.start();				// 음성인식 재시작
+  }
+}

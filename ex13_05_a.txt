@@ -1,0 +1,15 @@
+// 아두이노: 문자열 데이터(→주파수)를 수신하여 부저의 주파수 제어
+
+#define BUZZER 13
+
+void setup() {
+  pinMode(BUZZER, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() { }
+
+void serialEvent() {			// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int value = Serial.parseInt();		// 수신된 문자열로부터 정수인 주파수를 추출, 저장
+  tone(BUZZER, value, 500);		// 수신된 주파수로 500msec 동안 부저 울림
+}

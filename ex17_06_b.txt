@@ -1,0 +1,69 @@
+// p5.js: 음성 제어(→정지/중지)로 동물 이모지 및 LED 각 한 개 랜덤 선택
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let port = new p5.WebSerial();				// 시리얼 통신을 위한 객체 생성
+let result = '', index = 0, stop = false;
+let animals = ['🐵', '🐱', '🐯', '🐷', '🐪', '🐘'];	// 
+
+function setup() {
+  createCanvas(400, 200);
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  port.on('data', serialEvent);		// 데이터 수신 시 ‘data’ 이벤트 발생→콜백함수 호출
+  rec.onEnd = recEnd;			// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, true);			// true: 연속음성인식, true: 중간 인식 결과도 출력
+}
+
+function draw() {
+  background(0);
+  fill(255, 255, 0);
+  textSize(20);
+  textAlign(CENTER, CENTER);
+  text('인식단어: 정지(중지)', width/2, 30);
+  textSize(100);
+  text(animals[index], width/2, height/2);
+  
+  if (stop) {				// draw() 반복 처리 정지
+    noLoop();
+  } else {				// 동물 배열 인덱스 랜덤 선택
+    index = int(random(animals.length));
+  }
+}
+
+function serialEvent() {			// 콜백함수: 시리얼버퍼에 수신값이 있으면 자동 호출
+  let signal = port.read(); 		// 수신: 통신제어신호('B') 수신
+  if (result.indexOf('정지') !== -1 || result.indexOf('중지') !== -1) {
+    stop = true;
+    port.write(1);			// 송신: 1 전송
+  } else {				// 인식 키워드가 '정지', '중지' 이외의 음성일 때
+    stop = false;
+    loop();				// draw() 반복 처리(→동물 이모지 랜덤 출력)
+    port.write(0);			// 송신: 0 전송
+  }
+}
+
+function recResult() {			// 콜백함수: 음성인식 결과 반환 시 자동 호출  
+  result = rec.resultString;		// 음성인식 결과를 result에 저장
+  console.log(result);
+}
+
+function recEnd() {			// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start();				// 음성인식 재시작
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

@@ -1,0 +1,41 @@
+// 랜덤하게 움직이는 아이콘을 마우스로 맞추면 음성합성으로 아이콘명을 출력하고 점수 증가
+
+let speech = new p5.Speech();				// 음성합성 객체 생성
+let words = ['자전거', '버스', '비행기', '보트', '택시', '지하철'];
+let traffic = ['eb29', 'e530', 'e539', 'e532', 'e559', 'e56f'];	// Code Point
+let c, space = 100, index = 0, x = 0, y = 0, tx = 0.0, ty = 0.5, score = 0;
+
+function setup() {
+  createCanvas(400, 400);
+  textFont('Material Symbols Outlined');			// 폰트 설정
+  index = int(random(traffic.length));		// 아이콘 배열 인덱스 랜덤 선택
+  c = color(random(255), random(255), random(255));
+  speech.setLang('ko-KR');			// 음성합성 언어 설정(한국어)
+  speech.started(speechStart);			// 음성합성이 시작되면 speechStart() 호출
+}
+
+function draw() {
+  background(0);
+  fill(c);
+  textSize(space);
+  let icon = char(unhex(traffic[index]));		// 16진수→10진수→문자형으로 형변환
+  text(icon, x, y);				// 아이콘 문자 표시
+
+  x = noise(tx) * width;			// x값 범위: 0∼width
+  y = noise(ty) * height;			// y값 범위: 0∼height
+  tx += 0.01;
+  ty += 0.01;
+}
+
+function mousePressed() {
+  if (mouseX > x && mouseX < x+space && mouseY > y-space && mouseY < y) {
+    speech.speak(words[index]); 		// 합성음성 출력
+    score++;
+    console.log('점수: ' + score);		// 점수 표시
+  }
+}
+
+function speechStart() {			// 콜백함수: 음성합성이 시작되면 자동 호출
+  index = int(random(traffic.length)); 		// 아이콘 배열 인덱스 랜덤 선택
+  c = color(random(255), random(255), random(255));
+}

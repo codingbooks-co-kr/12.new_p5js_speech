@@ -1,0 +1,14 @@
+// 아두이노: 푸시버튼값(→0 또는 1) 송신
+
+#define BUTTON 2
+
+void setup() {
+  pinMode(BUTTON, INPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int value = digitalRead(BUTTON);	// 푸시버튼을 누르면 value=0, 떼면 value=1
+  Serial.write(value);			// 0 또는 1 송신
+  delay(30);				// 전송 속도 지연
+}

@@ -1,0 +1,72 @@
+// 방향키로 택시 이동, 택시를 따라가는 자전거, 게임 종료 시 합성음성으로 출력
+
+let speech = new p5.Speech();	// 음성합성 객체 생성
+let x1 = 250, y1 = 250, x2 = 500, y2 = 500;
+
+function setup() {
+  createCanvas(500, 500);
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+  textAlign(CENTER, CENTER);
+  textFont('Material Symbols Outlined');
+  textSize(50);
+}
+
+function draw() {
+  background(0);
+  fill(255, 255, 255);
+  let texi = char(unhex('e559'));	// 택시 아이콘
+  text(texi, x1, y1);			// 택시 아이콘 표시
+  fill(255, 255, 0);
+  let bike = char(unhex('e52f'));	// 자전거 아이콘 표시
+  text(bike, x2, y2);
+  moving();				// 택시 이동
+  chase();				// 택시를 추적하는 자전거
+  gameOver();				// 게임 종료
+}
+
+function moving() {
+  if (keyIsPressed) {
+    if (keyCode === LEFT_ARROW) {
+      x1 -= 2;
+    }
+    if (keyCode === RIGHT_ARROW) {
+      x1 += 2;
+    }
+    if (keyCode === UP_ARROW) {
+      y1 -= 2;
+    }
+    if (keyCode === DOWN_ARROW) {
+      y1 += 2;
+    }
+  }
+  x1 = constrain(x1, 0, width);		// 택시는 캔버스 내에서만 이동 제한
+  y1 = constrain(y1, 0, height);	// 택시는 캔버스 내에서만 이동 제한
+}
+
+function chase() {
+  let dx = x1 - x2; 			// 택시와 자전거 간의 x축 거리 차이
+  let dy = y1 - y2; 			// 택시와 자전거 간의 y축 거리 차이
+  if (dx > 0) x2++; 			// 자전거가 오른쪽으로 택시를 따라감
+  if (dx < 0) x2--; 			// 자전거가 왼쪽으로 택시를 따라감
+  if (dy > 0) y2++; 			// 자전거가 아래쪽으로 택시를 따라감
+  if (dy < 0) y2--; 			// 자전거가 위쪽으로 택시를 따라감
+}
+
+function gameOver() {
+  let d = dist(x1, y1, x2, y2);		// 자전거와 택시 사이의 거리
+  if (d < 5) {				// 자전거와 택시가 만나는 경우
+    text("게임 종료", width/2, height/2);
+    speech.speak('게임 종료'); 		// 합성음성 출력
+    noLoop();				// draw() 반복 처리 정지
+  }
+}
+
+function keyPressed() {
+  if (key === ' ') {			// 스페이스키를 누르면 게임 재시작
+    x1 = 250;
+    y1 = 250;
+    x2 = 500;
+    y2 = 500;
+    loop(); 				// draw() 반복 처리
+  }
+}

@@ -1,0 +1,74 @@
+// 음성인식으로 택시 이동, 택시를 따라가는 자전거, 게임 종료 시 음성인식으로 게임 재시작
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let result = '', x1 = 250, y1 = 250, x2 = 500, y2 = 500;
+
+function setup() {
+  createCanvas(500, 500);
+  rec.onEnd = recEnd;			// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, true);			// true: 연속음성인식, true: 중간 인식 결과도 출력
+  textAlign(CENTER, CENTER);
+  textFont('Material Symbols Outlined');
+  textSize(50);
+}
+
+function draw() {
+  background(0);
+  fill(255, 255, 255);
+  let texi = char(unhex('e559'));	// 택시 아이콘
+  text(texi, x1, y1);			// 택시 아이콘 표시
+  fill(255, 255, 0);
+  let bike = char(unhex('e52f'));	// 자전거 아이콘
+  text(bike, x2, y2);			// 자전거 아이콘 표시
+  moving();				// 택시 이동
+  chase();				// 택시를 추적하는 자전거
+  gameOver();				// 게임 종료
+}
+
+function moving() {
+  if (result.indexOf('왼쪽') !== -1) {
+    x1 -= 2;
+  } else if (result.indexOf('오른쪽') !== -1) {
+    x1 += 2;
+  } else if (result.indexOf('위쪽') !== -1) {
+    y1 -= 2;
+  } else if (result.indexOf('아래쪽') !== -1) {
+    y1 += 2;
+  }
+  x1 = constrain(x1, 0, width);		// 택시는 캔버스 내에서만 이동 제한
+  y1 = constrain(y1, 0, height);	// 택시는 캔버스 내에서만 이동 제한
+}
+
+function chase() {
+  let dx = x1 - x2; 			// 택시와 자전거 간의 x축 거리 차이
+  let dy = y1 - y2; 			// 택시와 자전거 간의 y축 거리 차이
+  if (dx > 0) x2++; 			// 자전거가 오른쪽으로 택시를 따라감
+  if (dx < 0) x2--; 			// 자전거가 왼쪽으로 택시를 따라감
+  if (dy > 0) y2++; 			// 자전거가 아래쪽으로 택시를 따라감
+  if (dy < 0) y2--; 			// 자전거가 위쪽으로 택시를 따라감
+}
+
+function gameOver() {
+  let d = dist(x1, y1, x2, y2);		// 자전거와 택시 사이의 거리
+  if (d < 5) {				// 자전거와 택시가 만나는 경우
+    text("게임 종료", width/2, height/2);
+    noLoop();				// draw() 반복 처리 정지
+  }
+}
+
+function recResult() {			// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  result = rec.resultString;		// 음성인식 결과를 result에 저장
+  console.log(result);
+  if (result.indexOf('시작') !== -1) {
+    x1 = 250;
+    y1 = 250;
+    x2 = 500;
+    y2 = 500;
+    loop();				// draw() 반복 처리
+  }
+}
+
+function recEnd() {			// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start();				// 음성인식 재시작
+}

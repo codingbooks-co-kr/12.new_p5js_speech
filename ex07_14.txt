@@ -1,0 +1,42 @@
+// 음성인식을 사용하여 방향(왼쪽, 오른쪽)을 말하면 이모지로 출력
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let direction = ['👈🏿', '👉🏿']; 			// 좌우 방향 이모지: 
+let index = -1;
+
+function setup() {
+  createCanvas(400, 200);
+  textAlign(CENTER, CENTER);
+  createP('인식단어: 왼쪽, 오른쪽');
+
+  rec.onEnd = recEnd; 			// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, false); 				// 연속음성인식 설정, 최종 인식 결과만 출력
+}
+
+function draw() {
+  background(200);
+  if (index >=0 && index < direction.length) {	// 바르게 인식한 경우의 index는 0,1
+    textSize(100);
+    text(direction[index], width/2, height/2);
+  } else {					// 오인식인 경우의 index는 -1
+    textSize(40);
+    text('좌우방향을 말하세요', width/2, height/2);
+  }
+}
+
+function recResult() {				// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  let result = rec.resultString; 			// 음성인식 결과를 result에 저장
+  console.log(result);
+  if (result.indexOf('왼쪽') !== -1) {		// 인식 문장 중 '왼쪽'이 포함된 경우
+    index = 0;
+  } else if (result.indexOf('오른쪽') !== -1) {	// 인식 문장 중 '오른쪽'이 포함된 경우
+    index = 1;
+  } else {					// 인식 키워드가 아닌 경우
+    index = -1;
+  }
+}
+
+function recEnd() {				// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start(); 					// 음성인식 재시작
+}

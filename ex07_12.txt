@@ -1,0 +1,39 @@
+// 아이콘을 마우스로 누르면 합성음성으로 출력
+
+let speech = new p5.Speech();	// 음성합성 객체 생성
+let words = ['연주', '정지'];
+let music = ['e1c4', 'ef71']; 		// 연주, 정지 Code Point
+let icon, space = 100, x1 = 30, x2 = 180, y = 150;
+
+function setup() {
+  createCanvas(300, 200);
+  textFont('Material Symbols Outlined');		// 아이콘 폰트 설정
+  textSize(space);
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+  speech.started(speechStart);		// 음성합성이 시작되면 콜백함수 speechStart() 호출
+  speech.ended(speechEnd);		// 음성합성이 끝나면 콜백함수 speechEnd() 호출
+}
+
+function draw() {
+  background(200);
+  icon = char(unhex(music[0]));		// 아이콘의 Code Point(16진수)→10진수→문자
+  text(icon, x1, y);
+  icon = char(unhex(music[1]));		// 아이콘의 Code Point(16진수)→10진수→문자
+  text(icon, x2, y);
+}
+
+function mousePressed() {		// 아이콘 영역인 사각형을 누를 경우
+  if (mouseX > x1 && mouseX < x1+space && mouseY > y-space && mouseY < y) {
+    speech.speak(words[0]); 		// 합성음성 출력
+  } else if (mouseX > x2 && mouseX < x2+space && mouseY > y-space && mouseY < y) {
+    speech.speak(words[1]); 		// 합성음성 출력
+  }
+}
+
+function speechStart() {		// 콜백함수: 음성합성이 시작되면 자동 호출
+  fill(255, 0, 0);
+}
+
+function speechEnd() {			// 콜백함수: 음성합성이 끝나면 자동 호출
+  fill(0);
+}

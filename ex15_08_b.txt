@@ -1,0 +1,61 @@
+// p5.js: 푸시버튼값 2개 수신 → 원 이동
+
+let speech = new p5.Speech();	// 음성합성 객체 생성
+let port = new p5.WebSerial();		// 시리얼 통신을 위한 객체 생성
+let x = 250, preValue0 = 0, preValue1 = 0;
+
+function setup( ) {
+  createCanvas(500, 200);
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  port.on('data', serialEvent);		// 데이터 수신 시 ‘data’ 이벤트 발생→콜백함수 호출
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+}
+
+function draw() {
+  background(0, 10);			// 페이딩 효과
+  noStroke();				// 외곽선 제거
+  fill(255, 255, 0);
+  ellipse(x, height/2, 50, 50);
+  x = constrain(x, 0, width);
+}
+
+function serialEvent() {			// 콜백함수: 시리얼버퍼에 수신값이 있으면 자동 호출
+  let str = port.readLine();		// 수신: 개행까지의 수신 문자열 읽기
+  if (!str) return;			// 입력 문자열(→str)이 없으면 함수 빠져나가기
+  let s = trim(str);			// 입력 문자열(→str)의 시작과 끝에 붙은 공백 삭제
+  let values = split(s, ',');		// 콤마로 구분된 문자열을 values 배열에 저장
+  port.write('B');			// 송신: 통신제어신호('B') 전송
+
+  if (values.length !== 2) return;	// 실행 초기, 통신시작신호('A')이면 함수 빠져나가기
+  if (int(values[0]) === 0) {		// 푸시버튼1을 누른 경우
+    x -= 2;				// 원 왼쪽 이동
+    if (preValue0 === 1) {		// values[0]=0, preVal0=1일 때 음성을 한 번만 출력
+      speech.speak('왼쪽 이동');		// 합성음성 출력
+    }
+  }
+  preValue0 = int(values[0]);
+  if (int(values[1]) === 0) {		// 푸시버튼2를 누른 경우
+    x += 2;				// 원 오른쪽 이동
+    if (preValue1 === 1) {		// values[1]=0, preVal1=1일 때 음성을 한 번만 출력
+      speech.speak('오른쪽 이동');	// 합성음성 출력
+    }
+  }
+  preValue1 = int(values[1]);
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

@@ -1,0 +1,48 @@
+// 마우스를 누를 때마다 랜덤, 정지를 반복하고 정지되었을 때 이모지명을 합성음성으로 출력
+
+let speech = new p5.Speech();		// 음성합성 객체 생성
+let words = ['원숭이', '고양이', '호랑이', '돼지', '낙타', '코끼리'];
+let animals = ['🐵', '🐱', '🐯', '🐷', '🐪', '🐘'];	// 
+let index = 0, stop = false;
+
+function setup() {
+  createCanvas(400, 200);
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+  speech.started(speechStart);		// 음성합성이 시작되면 콜백함수 speechStart() 호출
+  speech.ended(speechEnd);		// 음성합성이 끝나면 콜백함수 speechEnd() 호출
+}
+
+function draw() {
+  background(0);
+  fill(255);
+  textSize(80);
+  textAlign(CENTER, CENTER);
+  text(animals[index], width/2, height/2);
+
+  if (stop) {
+    noLoop();					// draw() 반복 처리 정지
+  } else {
+    index = int(random(animals.length));	// 동물 배열 인덱스 랜덤 선택
+  }
+}
+
+function mousePressed() {
+  stop = !stop;
+  if (stop) {
+    speech.speak(words[index]); 		// 합성음성 출력
+    text(animals[index], width/2, height/2);	// 이모지명 출력
+  } else {
+    loop();					// draw() 반복 처리
+  }
+}
+
+function speechStart() {			// 콜백함수: 음성합성이 시작되면 자동 호출
+  textSize(20);
+  text(words[index], width/2, 160);
+}
+
+function speechEnd() {				// 콜백함수: 음성합성이 끝나면 자동 호출
+  background(0);
+  textSize(30);
+  text('마우스를 누르세요!', width/2, height/2);
+}

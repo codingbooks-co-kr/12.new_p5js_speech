@@ -1,0 +1,31 @@
+// 아두이노: 가변저항값 2개와 푸시버튼값 송신
+
+#define BUTTON 2
+#define VARIABLE_R1 A1
+#define VARIABLE_R2 A2
+int preValue = 0;
+
+void setup() {
+  pinMode(BUTTON, INPUT);
+  pinMode(VARIABLE_R1, INPUT);
+  pinMode(VARIABLE_R2, INPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int value1 = analogRead(VARIABLE_R1);	// 첫 번째 가변저항값(0∼1023) 읽기
+  int value2 = analogRead(VARIABLE_R2);	// 두 번째 가변저항값(0∼1023) 읽기
+  Serial.print(value1);				// 첫 번째 가변저항값을 문자열로 송신
+  Serial.print(",");				// 전송값 사이를 꼼마(,)로 구분
+  Serial.print(value2);				// 두 번째 가변저항값을 문자열로 송신
+  Serial.print(",");				// 전송값 사이를 꼼마(,)로 구분
+
+  int value3 = digitalRead(BUTTON);		// 푸시버튼값 읽고 0 또는 1 송신
+  if (value3 == 0 && preValue == 1) {	// 푸시버튼을 누를 때 단 한 번 “0” 송신
+    Serial.println("0");
+  } else {
+    Serial.println("1");
+  }
+  preValue = value3;
+  delay(30);					// 전송 속도 지연
+}

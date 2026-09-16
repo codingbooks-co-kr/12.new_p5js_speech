@@ -1,0 +1,19 @@
+// 합성음성 텍스트 입력 후 버튼을 누르면 음성 출력
+
+let speech = new p5.Speech();		// 음성합성 객체 생성
+let myInput, button, words = '안녕하세요';
+
+function setup(){
+  noCanvas();
+  speech.setLang('ko-KR');			// 음성합성 언어 설정(한국어)
+  speech.setVoice('Google 한국의');		// 한국어 합성음성 설정
+
+  myInput = createInput(words);		// 입력창 생성
+  button = createButton('Text To Speech')
+  button.mousePressed(textToSpeech);		// 버튼을 누르면 콜백함수 호출
+}
+
+function textToSpeech() {			// 콜백함수 
+  speech.speak(myInput.value());		// 입력창의 문자열을 합성음성으로 출력
+  createP(myInput.value());			// 입력창의 문자열을 브라우저상에 출력
+}

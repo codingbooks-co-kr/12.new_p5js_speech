@@ -1,0 +1,91 @@
+// p5.js: 가변저항값 2개 수신하여 택시 이동, 택시가 원 안에 들어가면 자전거가 랜덤하게 떨림, 자전거와 만나면 합성음성으로 게임 종료를 알림, 푸시버튼을 누르면 재시작
+
+let speech = new p5.Speech();	// 음성합성 객체 생성
+let port = new p5.WebSerial();		// 시리얼 통신을 위한 객체 생성
+let x1 = 0, y1 = 0, x2 = 500, y2 = 500;
+
+function setup() {
+  createCanvas(500, 500);
+  port.getPorts();			// 포트 사용 가능 여부 확인
+  port.on('noport', makePortButton);	// 기존 선택한 포트가 없으면 makePortButton() 호출
+  port.on('portavailable', openPort);	// 사용 가능한 포트가 있으면 openPort() 자동 호출
+  port.on('data', serialEvent);		// 데이터 수신 시 ‘data’ 이벤트 발생→콜백함수 호출
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+
+  textAlign(CENTER, CENTER);
+  textFont('Material Symbols Outlined');
+  textSize(50);
+}
+
+function draw() {
+  background(0);
+  stroke(0, 255, 0);
+  noFill();
+  ellipse(width/2, height/2, 100, 100);	// 스토킹 방지 안전 지대
+  fill(255, 255, 255);
+  let texi = char(unhex('e559'));	// 택시 아이콘
+  text(texi, x1, y1);			// 택시 아이콘 표시
+  fill(255, 255, 0);
+  let bike = char(unhex('e52f'));	// 자전거 아이콘
+  text(bike, x2, y2);			// 자전거 아이콘 표시
+  
+  chase();				// 택시를 추적하는 자전거
+  gameOver();				// 게임 종료
+}
+
+function chase() {
+  let dx = x1 - x2;			// 택시와 자전거 간의 x축 거리 차이
+  let dy = y1 - y2;			// 택시와 자전거 간의 y축 거리 차이
+  d = dist(width/2, height/2, x1, y1);
+  if (d < 50) {
+    dx = int(random(3)) - 1;		// dx = -1,0,1 중 랜덤값
+    dy = int(random(3)) - 1;		// dy = -1,0,1 중 랜덤값
+  }
+  if (dx > 0) x2++;			// 자전거가 오른쪽으로 택시를 따라감
+  if (dx < 0) x2--;			// 자전거가 왼쪽으로 택시를 따라감
+  if (dy > 0) y2++;			// 자전거가 아래쪽으로 택시를 따라감
+  if (dy < 0) y2--;			// 자전거가 위쪽으로 택시를 따라감
+}
+
+function gameOver() {
+  let d = dist(x1, y1, x2, y2);		// 자전거와 택시 사이의 거리
+  if (d < 5) {				// 자전거와 택시가 만나는 경우
+    text("게임 종료", width/2, height/2);
+    speech.speak('게임 종료'); 		// 합성음성 출력
+    noLoop();				// draw() 반복 처리 정지
+  }
+}
+
+function begin() {			// 게임 재시작
+  x2 = 500;
+  y2 = 500;
+  loop();				// draw() 반복 처리
+}
+
+function serialEvent() {			// 콜백함수: 시리얼 버퍼에 값이 수신되면 자동 호출
+  let str = port.readLine();		// 수신: 개행까지의 수신 문자열 읽기
+  if (!str) return;			// 입력 문자열(→str) 값이 없으면 함수 빠져나가기
+  let s = trim(str);			// 입력 문자열(→str)의 시작과 끝에 붙은 공백 삭제
+  let values = split(s, ',');		// 콤마로 구분된 문자열을 values 배열에 저장
+  port.write('B'); 			// 송신: 통신제어신호('B') 전송
+
+  if (values.length !== 3) return;	// 실행 초기, 통신시작신호('A')이면 함수 빠져나가기
+  x1 = map(float(values[0]), 0, 1023, 0, width-1);
+  y1 = map(float(values[1]), 0, 1023, 0, height-1);
+  if (int(values[2]) === 0) begin();	// 푸시버튼을 누르면 재시작
+}
+
+function makePortButton() {			// 포트 첫 연결 시 포트 선택 버튼 생성
+  let portButton = createButton('포트 선택');	// 버튼 생성
+  portButton.mousePressed(choosePort);	// 버튼 누르면 choosePort() 자동 호출
+  function choosePort() {			// 콜백함수
+    port.requestPort();				// 시리얼 포트 선택창 오픈
+  }
+}
+
+function openPort() {				// 콜백함수
+  port.open().then(initiateSerial);		// 포트를 오픈 후 initiateSerial() 자동 호출
+  function initiateSerial() {			// 콜백함수
+    console.log('포트 오픈');
+  }
+}

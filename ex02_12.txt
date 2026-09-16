@@ -1,0 +1,15 @@
+// 회전 운동
+
+let theta = 0.0, r = 150.0;
+
+function setup() {
+  createCanvas(300, 300);
+  background(0);
+}
+
+function draw() {
+  let x = width/2 + r * cos(theta);		// x축 좌표: 코사인(cos) 운동
+  let y = height/2 + r * sin(theta);		// y축 좌표: 사인(sin) 운동
+  ellipse(x, y, 30, 30);			// 원이 회전 운동
+  theta += 0.05;
+}

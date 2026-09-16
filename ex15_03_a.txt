@@ -1,0 +1,20 @@
+// 아두이노: 수신된 1바이트의 정수(→0∼255)로 LED 밝기 제어
+
+#define LED 6
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.write('A');			// 시리얼 통신 시작신호 전송
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() { }
+
+void serialEvent() {		// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int value = Serial.read();	// 수신: 수신 데이터 1바이트 읽기
+  analogWrite(LED, value);	// 수신 데이터(→0∼255)로 LED 밝기 제어
+  Serial.write('B');          	// 송신: 통신제어신호('B') 전송
+}

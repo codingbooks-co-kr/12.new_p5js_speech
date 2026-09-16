@@ -1,0 +1,32 @@
+// 아두이노: 0 또는 1 수신하여 네 개의 LED 중 한 개 선택 점등 
+
+const int LED[] = {6, 7, 8, 12};	// LED 배열
+int r;
+
+void setup() {
+  for (int i = 0; i < 4; i++) {		// LED 배열을 출력 모드로 설정
+    pinMode(LED[i], OUTPUT);
+  }
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.write('A');			// 시리얼 통신 시작신호 전송
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() { }
+
+void serialEvent() {			// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int value = Serial.read();		// 수신: 0 또는 1 수신
+  if (value == 1) {			// 음성인식 키워드가 '정지' 또는 '중지'일 때 
+    for (int i = 0; i < 4; i++) {		// LED 네 개 모두 소등
+      digitalWrite(LED[i], 0);
+    }
+    digitalWrite(LED[r], 1);		// 네 개 중 한 개의 LED 랜덤 점등
+  } else {				// 음성인식 키워드가 '정지' 또는 '중지 이외의 음성
+    r = random(4);			// r = 0∼3의 정수 중 랜덤값
+    analogWrite(LED[r], random(255));	// LED 밝기값 랜덤 설정
+    delay(random(20, 50));		// 지연시간 랜덤 설정
+  }
+  Serial.write('B');          		// 송신: 통신제어신호('B') 전송
+}

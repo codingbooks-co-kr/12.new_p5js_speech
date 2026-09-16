@@ -1,0 +1,44 @@
+// 아두이노: RGB LED값 수신 및 푸시버튼값 송신
+
+#define BUTTON 2
+#define RedLED 11
+#define GreenLED 5
+#define BlueLED 3
+
+void setup() {
+  pinMode(BUTTON, INPUT);
+  pinMode(RedLED, OUTPUT);
+  pinMode(GreenLED, OUTPUT);
+  pinMode(BlueLED, OUTPUT);
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.write('A');			// 시리얼 통신 시작신호 전송
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() { }
+
+void serialEvent() {      		// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int value1 = Serial.read();		// 수신: 데이터 1바이트 읽기
+  if (value1 == 0) {
+    setColor(0, 0, 0);			// RGB LED OFF
+  } else if (value1 == 1) {
+    setColor(255, 0, 0);		// Red
+  } else if (value1 == 2) {
+    setColor(0, 255, 0);		// Green
+  } else if (value1 == 3) {
+    setColor(0, 0, 255);		// Blue
+  } else if (value1 == 4) {
+    setColor(255, 0, 255);		// Magenta(자홍색)
+  }
+  int value2 = digitalRead(BUTTON); 
+  Serial.write(value2);       		// 송신: 푸시버튼값 전송(→0 또는 1)
+}
+
+// setColor(빨강, 녹색, 파랑): 색상을 결정하는 함수
+void setColor(int Red, int Green, int Blue) {
+  analogWrite(RedLED, Red);
+  analogWrite(GreenLED, Green);
+  analogWrite(BlueLED, Blue);
+}

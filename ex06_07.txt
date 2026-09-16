@@ -1,0 +1,31 @@
+// 음성인식 결과와 신뢰도를 캔버스상에 표시
+
+let rec = new p5.SpeechRec('ko-KR', recResult);	// 음성인식 객체 생성 및 초기화
+let result = 'None', confidence = 0;
+
+function setup() {
+  createCanvas(400, 200);
+  rec.onEnd = recEnd;			// 음성인식 종료 시 콜백함수 recEnd() 호출
+  rec.start(true, false);			// true: 연속음성인식, false: 최종 인식 결과만 출력
+}
+
+function draw() {
+  background(0);
+  fill(255);
+  textSize(20);
+  text('[음성인식 시작]', 20, 40);
+
+  fill(255, 255, 0);
+  text('인식 결과: ' + result, 20, 100);
+  text('인식신뢰도: ' + nf(confidence * 100, 2, 1) + '%', 20, 150);
+}
+
+function recResult() {			// 콜백함수: 음성인식 결과 반환 시 자동 호출
+  result = rec.resultString;		// 음성인식 결과를 result에 저장
+  confidence = rec.resultConfidence;	// 음성인식 신뢰도
+}
+
+function recEnd() {			// 콜백함수: 음성인식 종료 시 자동 호출
+  console.log('[음성인식 재시작]');
+  rec.start();				// 음성인식 재시작
+}

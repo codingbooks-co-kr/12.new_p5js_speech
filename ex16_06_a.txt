@@ -1,0 +1,32 @@
+// 아두이노: 0,1,2를 수신할 때 LED 점멸 및 해당 부저음(→200Hz, 400Hz, 무음) 출력
+
+#define LED 6
+#define BUZZER 13
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.write('A');			// 시리얼 통신 시작신호 전송
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() { }
+
+void serialEvent() {      		// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int value = Serial.read();		// 수신: 0,1,2 중 한 개의 값 수신
+  if (value == 0) {
+    digitalWrite(LED, 0);		// LED 소등
+    tone(BUZZER, 200, 500);		// 200Hz음 500msec 동안 울리기
+    delay(500);				// 부저음 출력을 위해 지연시간 필요
+  } else if (value == 1) {
+    digitalWrite(LED, 1);		// LED 점등
+    tone(BUZZER, 400, 500);		// 400Hz음 500msec동안 울리기
+    delay(500);				// 부저음 출력을 위해 지연시간 필요
+  } else if (value == 2) {
+    noTone(BUZZER);			// 무음
+  }
+  Serial.write('B');              	// 송신: 통신제어신호('B') 전송
+}

@@ -1,0 +1,22 @@
+// 아두이노: 수신된 문자열에서 서보모터 각도 및 LED 밝기값 추출 및 제어
+
+#include <Servo.h>		// Servo 클래스가 선언된 헤더파일 가져오기
+#define LED 6
+#define SERVO A0
+Servo servo;			// Servo 클래스를 이용한 servo 객체의 선언 및 생성
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  pinMode(SERVO, OUTPUT);
+  servo.attach(SERVO);		// SERVO핀(→A0)을 servo 객체에 연결
+  Serial.begin(9600);
+}
+
+void loop() { }
+
+void serialEvent() {			// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int value1 = Serial.parseInt();		// 수신된 문자열로부터 서보모터 각도값을 추출, 저장
+  int value2 = Serial.parseInt();		// 수신된 문자열로부터 LED 밝기값을 추출, 저장
+  servo.write(value1);			// 서보모터 각도 제어
+  analogWrite(LED, value2);		// LED 밝기 제어
+}

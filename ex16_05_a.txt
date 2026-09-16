@@ -1,0 +1,20 @@
+// 아두이노: 푸시버튼값 송신
+
+#define BUTTON 2
+
+void setup() {
+  pinMode(BUTTON, INPUT);
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.write('A');			// 시리얼 통신 시작신호 전송
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() { }
+
+void serialEvent() {   			// 수신값이 있으면 자동 호출
+  int signal = Serial.read();		// 수신: 통신제어신호('B') 수신
+  int value = digitalRead(BUTTON);	// 푸시버튼을 누르면 value=0, 떼면 value=1
+  Serial.write(value);      		// 송신: 0 또는 1 전송
+}

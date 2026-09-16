@@ -1,0 +1,23 @@
+// 아두이노: 서보모터의 각도값 수신
+
+#include <Servo.h>		// Servo 클래스가 선언된 헤더파일 가져오기
+#define SERVO A0
+Servo servo;			// Servo 클래스를 이용한 servo 객체의 선언 및 생성
+
+void setup() {
+  pinMode(SERVO, OUTPUT);
+  servo.attach(SERVO);			// SERVO핀(→A0)을 servo 객체에 연결
+  Serial.begin(9600);
+  while (Serial.available() == 0) {	// 수신 버퍼에 수신값이 없는 동안 반복 실행
+    Serial.write('A');			// 시작신호 전송
+    delay(300);				// 0.3초 대기
+  }
+}
+
+void loop() { }
+
+void serialEvent() {      		// 시리얼 버퍼에 값이 수신되면 자동 호출
+  int value = Serial.read();		// 수신: 각도값(0∼180) 읽기
+  servo.write(value);			// 서보모터 각도 제어
+  Serial.write('B');        		// 송신 (통신제어신호: 'B')
+}

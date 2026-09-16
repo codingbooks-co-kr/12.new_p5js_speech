@@ -1,0 +1,24 @@
+// 원이 좌우 반사할 때 합성음성 출력
+
+let speech = new p5.Speech();	// 음성합성 객체 생성
+let x = 200, velocity = 2;
+
+function setup() {
+  createCanvas(400, 200);
+  speech.setLang('ko-KR');		// 음성합성 언어 설정(한국어)
+}
+
+function draw() {
+  background(0);
+  ellipse(x, height/2, 50, 50);
+  x += velocity;			// velocity값에 따라 x는 1씩 증가 또는 감소
+  if (x < 0) {				// 왼쪽 반사할 때
+    fill(random(255), random(255), random(255));
+    velocity *= -1;			// velocity는 1로 변경
+    speech.speak('왼쪽 반사');		// 합성음성 출력
+  } else if (x > width) {		// 오른쪽 반사할 때
+    fill(random(255), random(255), random(255));
+    velocity *= -1;			// velocity는 -1로 변경
+    speech.speak('오른쪽 반사');		// 합성음성 출력
+  }
+}

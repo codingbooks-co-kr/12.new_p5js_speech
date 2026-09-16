@@ -1,0 +1,21 @@
+// 아두이노: 가변저항값 2개 송신1
+
+#define VARIABLE_R1 A1
+#define VARIABLE_R2 A2
+
+void setup() {
+  pinMode(VARIABLE_R1, INPUT);
+  pinMode(VARIABLE_R2, INPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  int val1 = analogRead(VARIABLE_R1);
+  int val2 = analogRead(VARIABLE_R2);
+  int value1 = map(val1, 0, 1023, 0, 255);	// 1바이트(0∼255) 범위로 값 변환
+  int value2 = map(val2, 0, 1023, 0, 255);	// 1바이트(0∼255) 범위로 값 변환
+  Serial.write('A');        			// 동기신호 ‘A’를 송신
+  Serial.write(value1);       			// 가변저항1의 1바이트값 전송
+  Serial.write(value2);       			// 가변저항2의 1바이트값 전송
+  delay(30);					// 전송 속도 지연
+}

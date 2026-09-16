@@ -1,0 +1,15 @@
+// 아두이노: 가변저항값 송신1
+
+#define VARIABLE_R A1
+
+void setup() {
+  pinMode(VARIABLE_R, INPUT);
+  Serial.begin(9600);
+}
+
+void loop( ) {
+  int val = analogRead(VARIABLE_R);		// 가변저항값(0∼1023) 읽기
+  int value = map(val, 0, 1023, 0, 255);	// 가변저항값을 1바이트(0∼255) 범위로 변환
+  Serial.write(value);				// 가변저항값 송신
+  delay(30);					// 전송 속도 지연
+}
